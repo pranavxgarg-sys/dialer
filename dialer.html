@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-
 <html>
 <head>
-  <title>Exotel Dialer</title>
+  <title>Smart Dialer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
- <link rel="manifest" href="manifest.json">
+
+  <link rel="manifest" href="manifest.json">
+
   <style>
     body {
       font-family: Arial;
@@ -19,9 +20,9 @@
       width: 90%;
       margin: 20px auto;
       background: black;
-      border: none;
       color: lime;
       text-align: center;
+      border-radius: 10px;
     }
 
     .grid {
@@ -33,87 +34,153 @@
     }
 
     button {
-      padding: 20px;
-      font-size: 20px;
+      padding: 15px;
+      font-size: 18px;
       border-radius: 10px;
       border: none;
       background: #333;
       color: white;
     }
 
-    button:active {
-      background: #555;
-    }
-
-    .call {
-      background: green;
-    }
-
-    .contacts {
-      margin-top: 20px;
-    }
-
-    .contact-btn {
-      width: 90%;
-      padding: 10px;
-      margin: 5px;
-      background: #222;
-    }
+    .call { background: green; }
+    .hidden { display: none; }
   </style>
-
 </head>
 
 <body>
 
-<h2>📞 Exotel Dialer</h2>
+<h2>📞 Smart Dialer</h2>
 
-<input id="display" readonly>
-
-<div class="grid">
-  <button onclick="add('1')">1</button>
-  <button onclick="add('2')">2</button>
-  <button onclick="add('3')">3</button>
-  <button onclick="add('4')">4</button>
-  <button onclick="add('5')">5</button>
-  <button onclick="add('6')">6</button>
-  <button onclick="add('7')">7</button>
-  <button onclick="add('8')">8</button>
-  <button onclick="add('9')">9</button>
-  <button onclick="add('*')">*</button>
-  <button onclick="add('0')">0</button>
-  <button onclick="add('#')">#</button>
+<div>
+  <button onclick="showTab('dialer')">Dialer</button>
+  <button onclick="showTab('contacts')">Contacts</button>
+  <button onclick="showTab('history')">History</button>
 </div>
 
-<br>
+<!-- DIALER -->
+<div id="dialer">
+  <input id="display" readonly>
 
-<button class="call" onclick="callNumber()">📞 Call</button> <button onclick="clearNum()">❌ Clear</button>
+  <div class="grid">
+    <button onclick="add('1')">1</button>
+    <button onclick="add('2')">2</button>
+    <button onclick="add('3')">3</button>
+    <button onclick="add('4')">4</button>
+    <button onclick="add('5')">5</button>
+    <button onclick="add('6')">6</button>
+    <button onclick="add('7')">7</button>
+    <button onclick="add('8')">8</button>
+    <button onclick="add('9')">9</button>
+    <button onclick="add('*')">*</button>
+    <button onclick="add('0')">0</button>
+    <button onclick="add('#')">#</button>
+  </div>
 
-<div class="contacts">
-  <h3>Saved Contacts</h3>
+  <br>
+  <button class="call" onclick="callNumber()">📞 Call</button>
+  <button onclick="clearNum()">❌</button>
+  <button onclick="saveContact()">💾 Save</button>
+</div>
 
-<button class="contact-btn" onclick="setNumber('9876543210')">Rahul</button> <button class="contact-btn" onclick="setNumber('9123456780')">Aman</button> <button class="contact-btn" onclick="setNumber('9988776655')">Client A</button>
+<!-- CONTACTS -->
+<div id="contacts" class="hidden">
+  <h3>Contacts</h3>
+  <input id="cname" placeholder="Name">
+  <input id="cnum" placeholder="Number">
+  <button onclick="addContact()">Add</button>
+  <div id="contactList"></div>
+</div>
 
+<!-- HISTORY -->
+<div id="history" class="hidden">
+  <h3>Call History</h3>
+  <div id="historyList"></div>
 </div>
 
 <script>
+let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+function showTab(tab) {
+  document.getElementById("dialer").classList.add("hidden");
+  document.getElementById("contacts").classList.add("hidden");
+  document.getElementById("history").classList.add("hidden");
+  document.getElementById(tab).classList.remove("hidden");
+}
+
 function add(num) {
-  document.getElementById("display").value += num;
+  display.value += num;
 }
 
 function clearNum() {
-  document.getElementById("display").value = "";
+  display.value = "";
 }
 
 function setNumber(num) {
-  document.getElementById("display").value = num;
+  display.value = num;
+  showTab('dialer');
 }
 
 function callNumber() {
-  var num = document.getElementById("display").value;
+  let num = display.value;
+  if (!num) return;
 
-  var url = "https://pranav2431.app.n8n.cloud/webhook/4310849b-abe9-4390-96ff-20e442643ce1?number=6366889281" + num;
+  history.unshift({ num, time: new Date().toLocaleString() });
+  localStorage.setItem("history", JSON.stringify(history));
+  loadHistory();
 
-  window.location.href = url;
+  window.location.href = "https://pranav2431.app.n8n.cloud/webhook/4310849b-abe9-4390-96ff-20e442643ce1?number=6366889281" + num;
+}
+
+function saveContact() {
+  cname.value = "";
+  cnum.value = display.value;
+  showTab('contacts');
+}
+
+function addContact() {
+  if (!cname.value || !cnum.value) return;
+
+  contacts.push({ name: cname.value, num: cnum.value });
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+
+  cname.value = "";
+  cnum.value = "";
+
+  loadContacts();
+}
+
+function deleteContact(i) {
+  contacts.splice(i, 1);
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  loadContacts();
+}
+
+function loadContacts() {
+  contactList.innerHTML = contacts.map((c, i) =>
+    `<div>
+      <button onclick="setNumber('${c.num}')">${c.name} (${c.num})</button>
+      <button onclick="deleteContact(${i})">❌</button>
+    </div>`
+  ).join("");
+}
+
+function loadHistory() {
+  historyList.innerHTML = history.map(h =>
+    `<div>
+      <button onclick="setNumber('${h.num}')">${h.num} - ${h.time}</button>
+    </div>`
+  ).join("");
+}
+
+loadContacts();
+loadHistory();
+
+// ✅ SERVICE WORKER (GitHub Pages FIX)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/dialer/service-worker.js');
+  });
 }
 </script>
 
