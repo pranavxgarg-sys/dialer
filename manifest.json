@@ -1,7 +1,7 @@
 {
   "name": "Smart Dialer",
   "short_name": "Dialer",
-  "start_url": "/dialer/index.html",
+  "start_url": "/dialer/",
   "scope": "/dialer/",
   "display": "standalone",
   "orientation": "portrait",
