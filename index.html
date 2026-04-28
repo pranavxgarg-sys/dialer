@@ -182,6 +182,17 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/dialer/service-worker.js');
   });
 }
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/dialer/service-worker.js')
+    .then(reg => {
+      console.log("SW registered");
+
+      // 🔥 FORCE CONTROL
+      if (navigator.serviceWorker.controller === null) {
+        window.location.reload();
+      }
+    });
+}
 </script>
 
 </body>
