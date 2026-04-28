@@ -4,61 +4,108 @@
   <title>Smart Dialer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="manifest" href="manifest.json">
-
   <style>
     body {
-      font-family: Arial;
-      background: #111;
+      margin: 0;
+      font-family: sans-serif;
+      background: #000;
       color: white;
+    }
+
+    header {
+      padding: 15px;
+      font-size: 20px;
       text-align: center;
+      background: #111;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      background: #111;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+    }
+
+    .active {
+      border-bottom: 2px solid lime;
+    }
+
+    .screen {
+      display: none;
+      padding: 10px;
+    }
+
+    .show {
+      display: block;
     }
 
     #display {
-      font-size: 28px;
-      padding: 15px;
-      width: 90%;
-      margin: 20px auto;
+      width: 100%;
+      font-size: 30px;
+      padding: 10px;
+      text-align: center;
       background: black;
       color: lime;
-      text-align: center;
-      border-radius: 10px;
+      border: none;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      width: 90%;
-      margin: auto;
+      margin-top: 10px;
     }
 
     button {
-      padding: 15px;
+      padding: 18px;
       font-size: 18px;
       border-radius: 10px;
       border: none;
-      background: #333;
+      background: #222;
       color: white;
     }
 
-    .call { background: green; }
-    .hidden { display: none; }
+    .call {
+      background: green;
+    }
+
+    .contact {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: none;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>📞 Smart Dialer</h2>
+<header>📞 Smart Dialer</header>
 
-<div>
-  <button onclick="showTab('dialer')">Dialer</button>
-  <button onclick="showTab('contacts')">Contacts</button>
-  <button onclick="showTab('history')">History</button>
+<div class="tabs">
+  <button onclick="tab('dialer')">Dial</button>
+  <button onclick="tab('contacts')">Contacts</button>
+  <button onclick="tab('add')">Add</button>
+  <button onclick="tab('history')">History</button>
 </div>
 
 <!-- DIALER -->
-<div id="dialer">
+<div id="dialer" class="screen show">
   <input id="display" readonly>
 
   <div class="grid">
@@ -79,21 +126,23 @@
   <br>
   <button class="call" onclick="callNumber()">📞 Call</button>
   <button onclick="clearNum()">❌</button>
-  <button onclick="saveContact()">💾 Save</button>
 </div>
 
 <!-- CONTACTS -->
-<div id="contacts" class="hidden">
-  <h3>Contacts</h3>
-  <input id="cname" placeholder="Name">
-  <input id="cnum" placeholder="Number">
-  <button onclick="addContact()">Add</button>
+<div id="contacts" class="screen">
+  <input placeholder="Search..." oninput="searchContacts(this.value)">
   <div id="contactList"></div>
 </div>
 
+<!-- ADD CONTACT -->
+<div id="add" class="screen">
+  <input id="name" placeholder="Name">
+  <input id="number" placeholder="Number">
+  <button onclick="addContact()">Save Contact</button>
+</div>
+
 <!-- HISTORY -->
-<div id="history" class="hidden">
-  <h3>Call History</h3>
+<div id="history" class="screen">
   <div id="historyList"></div>
 </div>
 
@@ -101,98 +150,91 @@
 let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
 let history = JSON.parse(localStorage.getItem("history")) || [];
 
-function showTab(tab) {
-  document.getElementById("dialer").classList.add("hidden");
-  document.getElementById("contacts").classList.add("hidden");
-  document.getElementById("history").classList.add("hidden");
-  document.getElementById(tab).classList.remove("hidden");
+function tab(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
 }
 
-function add(num) {
-  display.value += num;
+function add(n) {
+  display.value += n;
 }
 
 function clearNum() {
   display.value = "";
 }
 
-function setNumber(num) {
-  display.value = num;
-  showTab('dialer');
-}
-
 function callNumber() {
   let num = display.value;
   if (!num) return;
 
-  history.unshift({ num, time: new Date().toLocaleString() });
+  history.unshift({ num, time: new Date().toLocaleTimeString() });
   localStorage.setItem("history", JSON.stringify(history));
   loadHistory();
 
   window.location.href = "https://pranav2431.app.n8n.cloud/webhook/4310849b-abe9-4390-96ff-20e442643ce1?number=6366889281" + num;
 }
 
-function saveContact() {
-  cname.value = "";
-  cnum.value = display.value;
-  showTab('contacts');
-}
-
 function addContact() {
-  if (!cname.value || !cnum.value) return;
+  let name = document.getElementById("name").value;
+  let number = document.getElementById("number").value;
 
-  contacts.push({ name: cname.value, num: cnum.value });
+  if (!name || !number) return;
+
+  contacts.push({ name, number });
+
+  // 🔥 SORT ALPHABETICALLY
+  contacts.sort((a, b) => a.name.localeCompare(b.name));
+
   localStorage.setItem("contacts", JSON.stringify(contacts));
 
-  cname.value = "";
-  cnum.value = "";
+  document.getElementById("name").value = "";
+  document.getElementById("number").value = "";
 
-  loadContacts();
-}
-
-function deleteContact(i) {
-  contacts.splice(i, 1);
-  localStorage.setItem("contacts", JSON.stringify(contacts));
   loadContacts();
 }
 
 function loadContacts() {
-  contactList.innerHTML = contacts.map((c, i) =>
-    `<div>
-      <button onclick="setNumber('${c.num}')">${c.name} (${c.num})</button>
-      <button onclick="deleteContact(${i})">❌</button>
-    </div>`
-  ).join("");
+  let html = "";
+  contacts.forEach(c => {
+    html += `
+      <div class="contact" onclick="select('${c.number}')">
+        <b>${c.name}</b><br>${c.number}
+      </div>
+    `;
+  });
+  contactList.innerHTML = html;
+}
+
+function searchContacts(q) {
+  let filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(q.toLowerCase())
+  );
+
+  let html = "";
+  filtered.forEach(c => {
+    html += `<div class="contact" onclick="select('${c.number}')">
+      <b>${c.name}</b><br>${c.number}
+    </div>`;
+  });
+
+  contactList.innerHTML = html;
+}
+
+function select(num) {
+  display.value = num;
+  tab('dialer');
 }
 
 function loadHistory() {
   historyList.innerHTML = history.map(h =>
-    `<div>
-      <button onclick="setNumber('${h.num}')">${h.num} - ${h.time}</button>
+    `<div class="contact" onclick="select('${h.num}')">
+      ${h.num} - ${h.time}
     </div>`
   ).join("");
 }
 
 loadContacts();
 loadHistory();
-
-// ✅ SERVICE WORKER (GitHub Pages FIX)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/dialer/service-worker.js');
-  });
-}
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/dialer/service-worker.js')
-    .then(reg => {
-      console.log("SW registered");
-
-      // 🔥 FORCE CONTROL
-      if (navigator.serviceWorker.controller === null) {
-        window.location.reload();
-      }
-    });
-}
 </script>
 
 </body>
