@@ -1,13 +1,13 @@
 {
   "name": "Smart Dialer",
   "short_name": "Dialer",
-  "start_url": ".",
+  "start_url": "/dialer/",
   "display": "standalone",
-  "background_color": "#111",
-  "theme_color": "#111",
+  "background_color": "#111111",
+  "theme_color": "#111111",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "/dialer/icon.png",
       "sizes": "192x192",
       "type": "image/png"
     }
