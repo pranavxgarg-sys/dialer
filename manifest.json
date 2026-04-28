@@ -1,7 +1,8 @@
 {
   "name": "Smart Dialer",
   "short_name": "Dialer",
-  "start_url": "/dialer/",
+  "start_url": "/dialer/index.html",
+  "scope": "/dialer/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
