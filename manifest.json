@@ -4,13 +4,15 @@
   "start_url": "/dialer/index.html",
   "scope": "/dialer/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#111111",
   "theme_color": "#111111",
   "icons": [
     {
       "src": "/dialer/icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
