@@ -1,8 +1,10 @@
-const CACHE_NAME = "dialer-v1";
+const CACHE_NAME = "dialer-v2";
 
 const urlsToCache = [
   "/dialer/",
-  "/dialer/index.html"
+  "/dialer/index.html",
+  "/dialer/manifest.json",
+  "/dialer/icon.png"
 ];
 
 self.addEventListener("install", event => {
@@ -12,9 +14,12 @@ self.addEventListener("install", event => {
   );
 });
 
+self.addEventListener("activate", event => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+    caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
