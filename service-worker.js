@@ -1,44 +1,26 @@
-const CACHE_NAME = "dialer-final-v3";
+const CACHE_NAME = "dialer-final-v4";
 
-const urlsToCache = [
-  "/dialer/",
-  "/dialer/index.html",
-  "/dialer/manifest.json",
-  "/dialer/icon.png"
-];
-
-// INSTALL
 self.addEventListener("install", event => {
-  self.skipWaiting(); // 🔥 force update immediately
+  self.skipWaiting();
 
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-// ACTIVATE
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key); // 🔥 delete old cache
-          }
-        })
-      );
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll([
+        "/dialer/",
+        "/dialer/index.html",
+        "/dialer/manifest.json",
+        "/dialer/icon.png"
+      ]);
     })
   );
-
-  self.clients.claim(); // take control immediately
 });
 
-// FETCH
+self.addEventListener("activate", event => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then(res => {
-      return res || fetch(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
